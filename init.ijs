@@ -1,4 +1,6 @@
 NB. Jgwf/init.ijs
+NB. Nothing here yet!  Still trying to work my way through the various data structures.
+
 createR3 =: 4 : 0  NB. (# to drop, # to take) createR3 bytes
 	'drop take' =. x
 	part =. take {. drop }. y
