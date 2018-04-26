@@ -16,8 +16,8 @@ int4_u =: 4 : '{.256#. |. a. i. (x+i.4){y'
 int4_s =: 4 : '_2 ic (x,>:x){y'
 int8_u =: 4 : '{.256#. |. a. i. (x+i.8){y'
 int8_s =: 4 : '_3 ic (x+i.8){y'
-
-5 6 char_u hgwf 
+real4  =: 4 : '_1 fc (x+i.4){y'
+real8  =: 4 : '_2 fc (x+i.8){y'
 
 hgwf =: fread 'c://Users/Thom/gravity/h.gwf'
 assert 'IGWD'-:4{.hgwf
@@ -25,15 +25,15 @@ assert 'IGWD'-:4{.hgwf
 assert 8 1=5 6 char_u hgwf NB. Format version = 8.1?
 assert 2 4 8 4 8 -: 7 8 9 10 11 char_u hgwf  NB. Expected sizes of numeric types
 assert 16b1234 = 12 int2_u hgwf
-assert 16b12345678 = (14 + i.4) int4_u hgwf
+assert 16b12345678 = 14 int4_u hgwf
 NB. assert 16b123456789abcdef = _3 ic (18+i.8) { hgwf NB. the way it should work!
-assert 81985529216486895 =  _3 ic (18+i.8) { hgwf  NB. J seems to not be quite right
+assert 81985529216486895 = 18 int8_u hgwf  NB. J seems to not be quite right
 
-assert 0.00001 > 1p1 - _1 fc (26+i.4) { hgwf
-assert 0.00001 > 1p1 - _2 fc (30+i.8) { hgwf
+assert 0.00001 > 1p1 - 26 real4 hgwf
+assert 0.00001 > 1p1 - 30 real8 hgwf
 
-]frameLibrary =. ({. a.i.38{hgwf) { 'unknown';'frameL';'frameCPP'
-]checksumScheme =. ({. a. i. 39{hgwf) { 'none';'CRC'
+]frameLibrary =. >(38 char_u hgwf) { 'unknown';'frameL';'frameCPP'
+]checksumScheme =. >(39 char_u hgwf) { 'none';'CRC'
 
 p =. 40
 ]r31 =. (p, 64) createR3 hgwf
