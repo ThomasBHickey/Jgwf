@@ -9,6 +9,7 @@ createR3 =: 4 : 0  NB. (# to drop, # to take) createR3 bytes
 	(<"0 part), (<"0 parti),: <"0 drop + i.take
 )
 NB.  Working with H-H1_LOSC_4_V2-1126259446-32.gwf
+
 char_u =: 4 : 'a.i. x{y'
 int2_u =: 4 : '0 ic (x,>:x){y'
 int2_s =: 4 : '_1 ic (x,>:x){y'
@@ -18,8 +19,14 @@ int8_u =: 4 : '{.256#. |. a. i. (x+i.8){y'
 int8_s =: 4 : '_3 ic (x+i.8){y'
 real4  =: 4 : '_1 fc (x+i.4){y'
 real8  =: 4 : '_2 fc (x+i.8){y'
+nstr0 =: 4 : 0  NB. 2 byte length + null terminated string (null not returned)
+	slen =. x int2_u y
+	(x+2+i.<:slen) { y
+)
 
 hgwf =: fread 'c://Users/Thom/gravity/h.gwf'
+NB. File Header -- FrHeader
+'HEADER:'
 assert 'IGWD'-:4{.hgwf
 
 assert 8 1=5 6 char_u hgwf NB. Format version = 8.1?
@@ -35,24 +42,35 @@ assert 0.00001 > 1p1 - 30 real8 hgwf
 ]frameLibrary =. >(38 char_u hgwf) { 'unknown';'frameL';'frameCPP'
 ]checksumScheme =. >(39 char_u hgwf) { 'none';'CRC'
 
-p =. 40
-]r31 =. (p, 64) createR3 hgwf
+NB. Start of frame
+framep =. 40
+'FRAME:'
+]frameLength =.   framep int8_u hgwf
+]r31 =. (framep, frameLength) createR3 hgwf
+]framechkType =. >((p=.framep+8) char_u hgwf) { 'none';'CRC'
+]frameclass =.   (p=.p+1) char_u hgwf 
+]frameinstance =. (p=.p+1) int4_u hgwf
+]framename =. (p=.p+4) nstr0 hgwf
+]classnum =. (p=.p+2+>:#framename) int2_u hgwf
+]comment =. (p=.p+2) nstr0 hgwf
+]chksum =. (p=.p+2+>:#comment) int4_u hgwf
 
-]frameLength =.   {._3 ic (p+i.8) { hgwf
-]framechkType =. ({.a.i.(p+8){hgwf) { 'none';'CRC'
-]frameclass =.   {.a.i.(p+9){ hgwf 
-]frameinstance =. {._2 ic (p+10+i.4) { hgwf
-]namelength =.{._1 ic (14+i.2){f2
-]framename =. (16+i.<:namelength){f2
-]classnum =. {._1 ic (16+namelength+i.2){f2 
-]commentlength =. {._1 ic (18+namelength+i.2){f2
-]comment =. (20+namelength+i.<:commentlength){f2
-]chksum =. _2 ic (20+namelength+commentlength+i.4){f2
-p =. 40+frameLength
-]r32 =. (p, 64) createR3 hgwf
-]fhsLength =. _3 ic (p+i.8) { hgwf
-]fhsChecksumScheme =. >(39{fHdri) { 'none';'CRC'
+'FRSE'
+]frsep=. framep+frameLength
+]frseLength =. (p=.frsep) int8_u hgwf
+]r32 =. (frsep, frseLength) createR3 hgwf
+]frseChecksumScheme =. >((p=.p+8) char_u hgwf) { 'none';'CRC'
 
-]fhsFrameclass =. a. i. (p+8) { hgwf
-]fhsInstance =. _2 ic (p+9+i.4) { hgwf
+]frseFrameclass =. (p=.>:p) char_u hgwf
+]frseInstance =. (p=.>:p) int4_u hgwf
+]frseName =. (p=.p+4) nstr0 hgwf
+]frseClass =.(p=.p+2+>:#frseName) nstr0 hgwf
+]frseComment =. (p=.p+2+>:#frseClass) nstr0 hgwf
+]frsechkSum =. (p=.p+2+>:#frseComment) int4_u hgwf
+
+]nextp =. frsep + frseLength
+(nextp,64) createR3 hgwf
+ 
+
+
 
