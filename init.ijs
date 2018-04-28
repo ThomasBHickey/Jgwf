@@ -1,6 +1,7 @@
 NB. Jgwf/init.ijs
 NB. Nothing here yet!  Still trying to work my way through the various data structures.
 
+require 'format/printf'
 NB. routine to display sections of bytes along with numeric and position info
 createR3 =: 4 : 0  NB. (# to drop, # to take) createR3 bytes
 	'drop take' =. x
@@ -9,6 +10,7 @@ createR3 =: 4 : 0  NB. (# to drop, # to take) createR3 bytes
 	(<"0 part), (<"0 parti),: <"0 drop + i.take
 )
 NB.  Working with H-H1_LOSC_4_V2-1126259446-32.gwf
+
 
 char_u =: 4 : 'a.i. x{y'
 int2_u =: 4 : '0 ic (x,>:x){y'
@@ -76,6 +78,7 @@ getFrSH=: 4 : 0 NB. x is offset, y bytes
 	p =. x
 	name =. p nstr0 y
 	class =. (p=.p+2+>:#name) int2_u y
+	smoutput 'getFRSH defining class';class
 	comment =. (p=.p+2) nstr0 y
 	chkSum =. (p=.p+2+>:#comment) int4_u y	
 	smoutput 'getFrSH';name;class;comment;chkSum
