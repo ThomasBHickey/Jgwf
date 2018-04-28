@@ -13,6 +13,7 @@ NB.  Working with H-H1_LOSC_4_V2-1126259446-32.gwf
 
 
 char_u =: 4 : 'a.i. x{y'
+NB. int2_u =: 4 : '(x+2);0 ic (x,>:x){y'
 int2_u =: 4 : '0 ic (x,>:x){y'
 int2_s =: 4 : '_1 ic (x,>:x){y'
 int4_u =: 4 : '{.256#. |. a. i. (x+i.4){y'
@@ -54,7 +55,7 @@ getFrame=: 4 : 0 NB. x is offset, y bytes
   domore =. 100
   whilst. domore do.
 	'length chkType class instance' =. p getCommon y
-	NB.smoutput (p, length) createR3 y
+	smoutput 'p:';p;'length';length
 	select. class
 	  case. 1 do.
 		'FrSHname FrSHclass FrSHcomment FrSHchkSum' =. (p+14) getFrSH y
@@ -62,8 +63,8 @@ getFrame=: 4 : 0 NB. x is offset, y bytes
 		'FrSEname FRSEclass FRSEcomment FRSEchkSum' =. (p+14) getFrSE y
 	  case. 3 do.
 		(p+14) getFrameH y
-	  case. do. smoutput 'New class';class
-			  domore =. 1
+	  case. do. smoutput 'New class in getFrame:';class
+		(p+14) getFrameH y
 	end.
 	p =. p+length
 	domore =. <:domore
@@ -73,16 +74,35 @@ getFrame=: 4 : 0 NB. x is offset, y bytes
   smoutput ((p+14-length), length) createR3 y
   FrSHname;FrSHclass;FrSHcomment;FrSHchkSum
 )
-
+getDict =: 4 : 0
+  p =. x
+  dict =. 0 3 $ 'name';'class';'comment'
+  whilst. domore do.
+	'length chkType class instance' =. p getCommon y
+	assert class=2
+	'FrSEname FrSEclass FrSEcomment FrSEchkSum' =. (p+14) getFrSE y
+	domore =. -. FrSEname-:'chkSum'
+	dict =. dict, FrSEname;FrSEclass;FrSEcomment
+	p =. p+length
+  end.
+  smoutput 'got Dict!'
+  NB.smoutput dict
+  p;dict
+)
+		
 getFrSH=: 4 : 0 NB. x is offset, y bytes
 	p =. x
 	name =. p nstr0 y
 	class =. (p=.p+2+>:#name) int2_u y
-	smoutput 'getFRSH defining class';class
+  smoutput 'getFRSH defining class';class
 	comment =. (p=.p+2) nstr0 y
 	chkSum =. (p=.p+2+>:#comment) int4_u y	
 	smoutput 'getFrSH';name;class;comment;chkSum
+	'p dict' =. (p+4) getDict y
+	smoutput 'here is dict'
+	smoutput dict 
 	name;class;comment;chkSum
+	p
 )
 
 getFrSE=: 4 : 0 NB. x is offset, y bytes
