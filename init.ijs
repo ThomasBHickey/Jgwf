@@ -11,7 +11,8 @@ createR3 =: 4 : 0  NB. (# to drop, # to take) createR3 bytes
 )
 NB.  Working with H-H1_LOSC_4_V2-1126259446-32.gwf
 
-
+classes =: 1,2  NB.  the only two classes to start with
+dicts =: 2$<0
 char_u =: 4 : 'a.i. x{y'
 NB. int2_u =: 4 : '(x+2);0 ic (x,>:x){y'
 int2_u =: 4 : '0 ic (x,>:x){y'
@@ -55,15 +56,15 @@ getFrame=: 4 : 0 NB. x is offset, y bytes
   domore =. 100
   whilst. domore do.
 	'length chkType class instance' =. p getCommon y
-	smoutput 'p:';p;'length';length
+	NB.smoutput 'p:';p;'length';length
 	select. class
 	  case. 1 do.
 		'FrSHname FrSHclass FrSHcomment FrSHchkSum' =. (p+14) getFrSH y
 	  case. 2 do.
 		'FrSEname FRSEclass FRSEcomment FRSEchkSum' =. (p+14) getFrSE y
-	  case. 3 do.
-		(p+14) getFrameH y
-	  case. do. smoutput 'New class in getFrame:';class
+	  case. do. 
+		
+		smoutput 'New class in getFrame:';class
 		(p+14) getFrameH y
 	end.
 	p =. p+length
@@ -71,7 +72,7 @@ getFrame=: 4 : 0 NB. x is offset, y bytes
   end.
   smoutput 'ending getFrame'
   smoutput 'getFrame:';'length:';length;'p';p;'class:';class;'inst:';instance
-  smoutput ((p+14-length), length) createR3 y
+  NB.smoutput ((p+14-length), length) createR3 y
   FrSHname;FrSHclass;FrSHcomment;FrSHchkSum
 )
 getDict =: 4 : 0
@@ -85,9 +86,9 @@ getDict =: 4 : 0
 	dict =. dict, FrSEname;FrSEclass;FrSEcomment
 	p =. p+length
   end.
-  smoutput 'got Dict!'
+  NB.smoutput 'got Dict!'
   NB.smoutput dict
-  p;dict
+  p;<dict
 )
 		
 getFrSH=: 4 : 0 NB. x is offset, y bytes
@@ -97,10 +98,12 @@ getFrSH=: 4 : 0 NB. x is offset, y bytes
   smoutput 'getFRSH defining class';class
 	comment =. (p=.p+2) nstr0 y
 	chkSum =. (p=.p+2+>:#comment) int4_u y	
-	smoutput 'getFrSH';name;class;comment;chkSum
+	NB.smoutput 'getFrSH';name;class;comment;chkSum
 	'p dict' =. (p+4) getDict y
 	smoutput 'here is dict'
-	smoutput dict 
+	smoutput dict
+	classes =: classes, class
+	dicts =: dicts, <dict
 	name;class;comment;chkSum
 	p
 )
@@ -111,7 +114,7 @@ getFrSE=: 4 : 0 NB. x is offset, y bytes
 	class=. (p=.p+2+>:#name) nstr0 y
 	comment =. (p=.p+2+>:#class) nstr0 y
 	chkSum  =. (p=.p+2+>:#comment) int4_u y
-	smoutput 'getFrSE';name;class;comment;chkSum
+	NB. smoutput 'getFrSE';name;class;comment;chkSum
 	name;class;comment;chkSum
 )
 
@@ -126,7 +129,7 @@ getFrameH=: 4 : 0 NB. x is offset into y bytes
 	GTimeN =. (p=.p+4) int4_u y
 	ULeapS =. (p=.p+4) int2_u y
 	dt =. (p=.p+2) real8 y
-	smoutput 'getFRameH';name;run;frame;GTimeS;GTimeN;ULeapS;dt
+	NB. smoutput 'getFRameH';name;run;frame;GTimeS;GTimeN;ULeapS;dt
 )
 
 hgwf =: fread 'c://Users/Thom/gravity/h.gwf'
