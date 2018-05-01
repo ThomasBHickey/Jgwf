@@ -11,41 +11,52 @@ createR3 =: 4 : 0  NB. (# to drop, # to take) createR3 bytes
 )
 NB.  Working with H-H1_LOSC_4_V2-1126259446-32.gwf
 
-char_u =: 4 : '(x+1);a.i. x{y'
-int2_u =: 4 : '(x+2);0 ic (x,x+1){y'
-int2_s =: 4 : '(x+2);_1 ic (x,x+1){y'
-int4_u =: 4 : '(x+4);{.256#. |. a. i. (x+i.4){y'
-int4_s =: 4 : '(x+4);_2 ic (x+i.4){y'
+CHAR_U =: 4 : '(x+1);a.i. x{y'
+INT_2U =: 4 : '(x+2);0 ic (x,x+1){y'
+INT_2S =: 4 : '(x+2);_1 ic (x,x+1){y'
+INT_4U =: 4 : '(x+4);{.256#. |. a. i. (x+i.4){y'
+INT_4S =: 4 : '(x+4);_2 ic (x+i.4){y'
 
-int8_u =: 4 : '(x+8);{.256#. |. a. i. (x+i.8){y'
-int8_s =: 4 : '(x+8);_3 ic (x+i.8){y'
-real4  =: 4 : '(x+4);_1 fc (x+i.4){y'
-real8  =: 4 : '(x+8);_2 fc (x+i.8){y'
-nstr0 =: 4 : 0  NB. 2 byte length + null terminated string (null not returned)
-	'ix slen' =. x int2_u y
+INT_8U =: 4 : '(x+8);{.256#. |. a. i. (x+i.8){y'
+INT_8S =: 4 : '(x+8);_3 ic (x+i.8){y'
+REAL_4  =: 4 : '(x+4);_1 fc (x+i.4){y'
+REAL_8  =: 4 : '(x+8);_2 fc (x+i.8){y'
+STRING =: 4 : 0  NB. 2 byte length + null terminated string (null not returned)
+	'ix slen' =. x INT_2U y
 	(ix+{.slen);(ix+i.<:slen) { y
+)
+PTR_STRUCT =: 4  : '(x+6);(x+i.6){y'
+COMPLEX_8	=: 4 : 0
+	'xi r' =. x REAL_4 y
+	'xi c' =. xi REAL_4 y
+	xi;+.^:_1) r c
+)
+COMPLEX_16	=: 4 : 0
+	'xi r' =. x REAL_8 y
+	'xi c' =. xi REAL_8 y
+	xi;+.^:_1) r c
 )
 
 validateFileHeader =: 3 : 0  NB. pass in file bytes
 	assert ('IGWD',{.a.)-:5 {. y
-	assert 8 1-:>1{5 6 char_u y NB. Format version = 8.1?
-	assert 2 4 8 4 8 -: >1{7 8 9 10 11 char_u y  NB. Expected sizes of numeric types
-	assert 16b1234 = >1{12 int2_u y
-	assert 16b12345678 = >1{14 int4_u y
+	assert 8 1-:>1{5 6 CHAR_U y NB. Format version = 8.1?
+	assert 2 4 8 4 8 -: >1{7 8 9 10 11 CHAR_U y  NB. Expected sizes of numeric types
+	assert 16b1234 = >1{12 INT_2U y
+	assert 16b12345678 = >1{14 INT_4U y
 	NB. assert 16b123456789abcdef = _3 ic (18+i.8) { y NB. the way it should work!
-	assert 81985529216486895 = >1{18 int8_u y  NB. J seems to not be quite right
-	assert 0.00001 > 1p1 - >1{26 real4 y
-	assert 0.00001 > 1p1 - >1{30 real8 y
-	assert 'frameCPP'-: >(>1{38 char_u y) { 'unknown';'frameL';'frameCPP' NB. Frame library
-	assert 'CRC'-: >(>1{39 char_u y) { 'none';'CRC'  NB. Checksum scheme
+	assert 81985529216486895 = >1{18 INT_8U y  NB. J seems to not be quite right
+	assert 0.00001 > 1p1 - >1{26 REAL_4 y
+	assert 0.00001 > 1p1 - >1{30 REAL_8 y
+	assert 'frameCPP'-: >(>1{38 CHAR_U y) { 'unknown';'frameL';'frameCPP' NB. Frame library
+	assert 'CRC'-: >(>1{39 CHAR_U y) { 'none';'CRC'  NB. Checksum scheme
 	40 NB. length of file header
 )
 
 getCommon =: 4 : 0  NB. x=offset, y=bytes
-	'ix length' =. x int8_u y
-	'ix chkType' =. ix char_u y
-	'ix class' =.   ix char_u y 
-	'ix instance' =. ix int4_u y
+	'ix length' =. x INT_8U y
+	'ix chkType' =. ix CHAR_U y
+	'ix class' =.   ix CHAR_U y 
+	'ix instance' =. ix INT_4U y
 	 ix;length;chkType;class;instance
 )
 
@@ -58,7 +69,6 @@ getFrame=: 4 : 0 NB. x is offset, y bytes
 	select. class
 	  case. 1 do.
 		'ix FrSHname FrSHclass FrSHcomment FrSHchkSum' =. ix getFrSH y
-		smoutput 'ix back from getFrSH';ix
 	  case. 2 do.
 		'ix FrSEname FRSEclass FRSEcomment FRSEchkSum' =. ix getFrSE y
 	  case. do.
@@ -90,10 +100,10 @@ getDict =: 4 : 0
 )
 		
 getFrSH=: 4 : 0 NB. x is offset, y bytes
-	'ix name' =. x nstr0 y
-	'ix class' =. ix int2_u y
-	'ix comment' =. ix nstr0 y
-	'ix chkSum' =. ix int4_u y	
+	'ix name' =. x STRING y
+	'ix class' =. ix INT_2U y
+	'ix comment' =. ix STRING y
+	'ix chkSum' =. ix INT_4U y	
 	smoutput 'getFrSH';name;class;comment;x
 	'ix bdict' =. ix getDict y
 	smoutput 'ix after getDict:';ix
@@ -106,28 +116,28 @@ getFrSH=: 4 : 0 NB. x is offset, y bytes
 )
 
 getFrSE=: 4 : 0 NB. x is offset, y bytes
-	'ix name' =. x nstr0 y
-	'ix class'=. ix nstr0 y
-	'ix comment' =. ix nstr0 y
-	'ix chkSum'  =. ix int4_u y
+	'ix name' =. x STRING y
+	'ix class'=. ix STRING y
+	'ix comment' =. ix STRING y
+	'ix chkSum'  =. ix INT_4U y
 	NB. smoutput 'getFrSE';name;class;comment;chkSum
 	ix;name;class;comment;chkSum
 )
 
 getFrameH=: 4 : 0 NB. x is offset into y bytes
 	NB.smoutput (x,40) createR3 y
-	'ix name' =. x nstr0 y
-	'ix run' =. ix int4_s y
-	'ix frame' =. ix int4_u y
-	'ix dataQuality' =. ix int4_u y
-	'ix GTimeS' =. ix int4_u y
-	'ix GTimeN' =. ix int4_u y
-	'ix ULeapS' =. ix int2_u y
-	'ix dt' =. ix real8 y
+	'ix name' =. x STRING y
+	'ix run' =. ix INT_4U y
+	'ix frame' =. ix INT_4U y
+	'ix dataQuality' =. ix INT_4U y
+	'ix GTimeS' =. ix INT_4U y
+	'ix GTimeN' =. ix INT_4U y
+	'ix ULeapS' =. ix INT_2U y
+	'ix dt' =. ix REAL_8 y
 	smoutput 'getFRameH';name;run;frame;GTimeS;GTimeN;ULeapS;dt
 )
 
-dicts =: 0$0
+dicts =: 0 3$''
 classes =: 1 2
 hgwf =: fread 'c://Users/Thom/gravity/h.gwf'
 
