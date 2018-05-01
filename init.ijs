@@ -50,13 +50,15 @@ getCommon =: 4 : 0  NB. x=offset, y=bytes
 )
 
 getFrame=: 4 : 0 NB. x is offset, y bytes
-  domore =. 100
+  domore =. 10
+  ix =. x
   whilst. domore do.
-	'ix length chkType class instance' =. x getCommon y
-	smoutput 'ix:';ix;'length:';length
+	'ix length chkType class instance' =. ix getCommon y
+	smoutput 'getFrame domore loop ix:';ix;'class:';class
 	select. class
 	  case. 1 do.
 		'ix FrSHname FrSHclass FrSHcomment FrSHchkSum' =. ix getFrSH y
+		smoutput 'ix back from getFrSH';ix
 	  case. 2 do.
 		'ix FrSEname FRSEclass FRSEcomment FRSEchkSum' =. ix getFrSE y
 	  case. do.
@@ -83,21 +85,18 @@ getDict =: 4 : 0
 	domore =. -. FrSEname-:'chkSum'
 	dict =. dict, FrSEname;FrSEclass;FrSEcomment
   end.
-  smoutput 'got Dict!'
-  smoutput 'ix $dict';ix;($ix);#dict
+  smoutput 'got Dict: ix $dict';ix;($ix);#dict
   ix;<dict
 )
 		
 getFrSH=: 4 : 0 NB. x is offset, y bytes
 	'ix name' =. x nstr0 y
 	'ix class' =. ix int2_u y
-  smoutput 'getFrSH defining class';ix;class
 	'ix comment' =. ix nstr0 y
-  smoutput 'getFrSH comment';ix;comment
 	'ix chkSum' =. ix int4_u y	
-	smoutput 'getFrSH';name;class;comment;chkSum
-	smoutput 'in getFrSH: ix';ix;'$ix',$ix
+	smoutput 'getFrSH';name;class;comment;x
 	'ix bdict' =. ix getDict y
+	smoutput 'ix after getDict:';ix
 	dict =. >bdict
 	dicts =: dicts,dict
 	classes =: classes,class
