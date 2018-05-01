@@ -11,8 +11,6 @@ createR3 =: 4 : 0  NB. (# to drop, # to take) createR3 bytes
 )
 NB.  Working with H-H1_LOSC_4_V2-1126259446-32.gwf
 
-classes =: 1,2  NB.  the only two classes to start with
-real8  =: 4 : '_2 fc (x+i.8){y'
 char_u =: 4 : '(x+1);a.i. x{y'
 int2_u =: 4 : '(x+2);0 ic (x,x+1){y'
 int2_s =: 4 : '(x+2);_1 ic (x,x+1){y'
