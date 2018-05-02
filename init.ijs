@@ -107,7 +107,7 @@ getFrSH=: 4 : 0 NB. x is offset, y bytes
 	smoutput 'getFrSH';name;class;comment;x
 	'ix bdict' =. ix getDict y  NB. boxed dict
 	smoutput 'ix after getDict:';ix
-	dicts =: dicts;bdict
+	dicts =: dicts,<bdict  NB. rebox it
 	classes =: classes,class
 	NB.smoutput 'here is dict'
 	NB.smoutput dict 
@@ -139,8 +139,8 @@ getFrameH=: 4 : 0 NB. x is offset into y bytes
 
 hgwf =: fread 'c://Users/Thom/gravity/h.gwf'
 runit =: 3 : 0
-	dicts =: 0 3$''
-	classes =: 1 2
+	dicts =: 0$0
+	classes =: 0$0
 	]fileHeaderLength =. validateFileHeader y
 	fileHeaderLength getFrame y
 )
