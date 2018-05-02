@@ -65,7 +65,7 @@ getFrame=: 4 : 0 NB. x is offset, y bytes
   ix =. x
   whilst. domore do.
 	'ix length chkType class instance' =. ix getCommon y
-	smoutput 'getFrame domore loop ix:';ix;'class:';class
+	smoutput 'getFrame domore loop ix:';ix;'length:';length;'class:';class
 	select. class
 	  case. 1 do.
 		'ix FrSHname FrSHclass FrSHcomment FrSHchkSum' =. ix getFrSH y
@@ -86,7 +86,7 @@ getFrame=: 4 : 0 NB. x is offset, y bytes
   ix;FrSHname;FrSHclass;FrSHcomment;FrSHchkSum
 )
 getDict =: 4 : 0
-  dict =. 0 3 $ 'name';'class';'comment'
+  dict =. 0 3 $ 0
   ix =. x
   whilst. domore do.
 	'ix length chkType class instance' =. ix getCommon y
@@ -105,10 +105,9 @@ getFrSH=: 4 : 0 NB. x is offset, y bytes
 	'ix comment' =. ix STRING y
 	'ix chkSum' =. ix INT_4U y	
 	smoutput 'getFrSH';name;class;comment;x
-	'ix bdict' =. ix getDict y
+	'ix bdict' =. ix getDict y  NB. boxed dict
 	smoutput 'ix after getDict:';ix
-	dict =. >bdict
-	dicts =: dicts,dict
+	dicts =: dicts;bdict
 	classes =: classes,class
 	NB.smoutput 'here is dict'
 	NB.smoutput dict 
@@ -137,9 +136,12 @@ getFrameH=: 4 : 0 NB. x is offset into y bytes
 	smoutput 'getFRameH';name;run;frame;GTimeS;GTimeN;ULeapS;dt
 )
 
-dicts =: 0 3$''
-classes =: 1 2
-hgwf =: fread 'c://Users/Thom/gravity/h.gwf'
 
-]fileHeaderLength =. validateFileHeader hgwf
-fileHeaderLength getFrame hgwf
+hgwf =: fread 'c://Users/Thom/gravity/h.gwf'
+runit =: 3 : 0
+	dicts =: 0 3$''
+	classes =: 1 2
+	]fileHeaderLength =. validateFileHeader y
+	fileHeaderLength getFrame y
+)
+runit hgwf
