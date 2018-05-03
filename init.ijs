@@ -2,6 +2,7 @@ NB. Jgwf/init.ijs
 NB. Nothing here yet!  Still trying to work my way through the various data structures.
 
 require 'format/printf'
+require 'arc/zlib'
 NB. routine to display sections of bytes along with numeric and position info
 createR3 =: 4 : 0  NB. (# to drop, # to take) createR3 bytes
 	'drop take' =. x
@@ -12,6 +13,11 @@ createR3 =: 4 : 0  NB. (# to drop, # to take) createR3 bytes
 NB.  Working with H-H1_LOSC_4_V2-1126259446-32.gwf
 
 CHAR_U =: 4 : '(x+1);a.i. x{y'
+CHAR2 =: 4 : '(x+2);(x,x+1){y'
+CHARnBytes =: 4 : 0
+	'ix clen' =. x
+	(ix+clen); clen {. ix}. y
+)
 INT_2U =: 4 : '(x+2);0 ic (x,x+1){y'
 INT_2S =: 4 : '(x+2);_1 ic (x,x+1){y'
 INT_4U =: 4 : '(x+4);{.256#. |. a. i. (x+i.4){y'
@@ -25,7 +31,6 @@ STRING =: 4 : 0  NB. 2 byte length + null terminated string (null not returned)
 	'ix slen' =. x INT_2U y
 	(ix+{.slen);(ix+i.<:slen) { y
 )
-CHAR2 =: 4 : '(x+2);(x,x+1){y'
 PTR_STRUCT =: 4  : '(x+6);(x+i.6){y'
 COMPLEX_8	=: 4 : 0
 	'xi r' =. x REAL_4 y
@@ -96,8 +101,28 @@ getFrDict =: 4 : 0
 	for_row. dict do.
 	  NB.smoutput 'getFrDict row';row
 	  type =. >1{row
-	  ". '''ix val'' =.ix ',type,' y' 	
+	  if. 'nAuxParam'-:_9{.type do.
+		smoutput 'type:';type
+		smoutput 'res so far:'; res; _1{res
+		assert 0=>_1{res
+		val =. 0
+       elseif. type -: 'CHARnBytes' do.
+		smoutput 'type:'; type
+		smoutput 'res so far:';res;_1{res
+		smoutput '2{res:'; 2{res
+		assert 2=>>2{res  NB. GZip
+		zleng =. _1 {res
+		smoutput 'decompressing';zleng; 'bytes of data'
+		'ix zdata' =.(ix; zleng) CHARnBytes y
+		uncomp =. zlib_uncompress zdata
+		smoutput 'first real8'; 0 REAL_8 uncomp
+		reals =. _2 fc uncomp
+		smoutput 'length of reals';#reals
+		smoutput 'sample of reals:';(i.10){reals
+	  elseif.do.
+	  	". '''ix val'' =.ix ',type,' y' 	
 	  NB. smoutput 'getFrDict';>0{row;type;val;ix
+	  end.
 	  res =. res,<val
 	end.
 	NB.smoutput 'getFrDict res';res
