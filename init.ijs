@@ -90,14 +90,11 @@ getFrame=: 4 : 0 NB. x is offset, y bytes
 getFrDict =: 4 : 0
 	'class ix' =. x
 	assert [dict =. >({.I. class = classes){dicts
-	NB.smoutput 'getFrDict dict';dict
-	NB.smoutput 'getFrDict 0{>dict';0{>dict
-	NB.smoutput 'rows:'
 	for_row. dict do.
-	  smoutput 'getFrDict row';row
+	  NB.smoutput 'getFrDict row';row
 	  type =. >1{row
 	  ". '''ix val'' =.ix ',type,' y' 	
-	  smoutput type;val;ix
+	  NB. smoutput 'getFrDict';>0{row;type;val;ix
 	end.	
 )
 	
@@ -122,17 +119,18 @@ getFrSH=: 4 : 0 NB. x is offset, y bytes
 	'ix chkSum' =. ix INT_4U y	
 	smoutput 'getFrSH';name;class;comment;x
 	'ix bdict' =. ix getDict y  NB. boxed dict
-	smoutput 'ix after getDict:';ix
+	NB.smoutput 'ix after getDict:';ix
 	dicts =: dicts,<bdict  NB. rebox it
 	classes =: classes,class
-	NB.smoutput 'here is dict'
-	NB.smoutput dict 
 	ix;name;class;comment;chkSum
 )
 
 getFrSE=: 4 : 0 NB. x is offset, y bytes
 	'ix name' =. x STRING y
 	'ix class'=. ix STRING y
+	if. 'PTR_STRUCT' -: (#'PTR_STRUCT'){. class do.
+		class =. 'PTR_STRUCT'
+	end.
 	'ix comment' =. ix STRING y
 	'ix chkSum'  =. ix INT_4U y
 	NB. smoutput 'getFrSE';name;class;comment;chkSum
