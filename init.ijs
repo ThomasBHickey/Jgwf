@@ -25,6 +25,7 @@ STRING =: 4 : 0  NB. 2 byte length + null terminated string (null not returned)
 	'ix slen' =. x INT_2U y
 	(ix+{.slen);(ix+i.<:slen) { y
 )
+CHAR2 =: 4 : '(x+2);(x,x+1){y'
 PTR_STRUCT =: 4  : '(x+6);(x+i.6){y'
 COMPLEX_8	=: 4 : 0
 	'xi r' =. x REAL_4 y
@@ -74,10 +75,11 @@ getFrame=: 4 : 0 NB. x is offset, y bytes
 	  case. do.
 		if. class e. classes do.
 			smoutput 'found used class';class
-			(class, ix) getFrDict y 
+			'ix res' =. (class, ix) getFrDict y 
+			smoutput 'class';class;'result';res
 		else.
 			smoutput 'New class in getFrame:';class
-			ix getFrameH y
+			ix =. ix getFrameH y
 		end.
 	end.
 	domore =. <:domore
@@ -90,12 +92,16 @@ getFrame=: 4 : 0 NB. x is offset, y bytes
 getFrDict =: 4 : 0
 	'class ix' =. x
 	assert [dict =. >({.I. class = classes){dicts
+	res =. 0$0
 	for_row. dict do.
 	  NB.smoutput 'getFrDict row';row
 	  type =. >1{row
 	  ". '''ix val'' =.ix ',type,' y' 	
 	  NB. smoutput 'getFrDict';>0{row;type;val;ix
-	end.	
+	  res =. res,<val
+	end.
+	NB.smoutput 'getFrDict res';res
+	ix;<res
 )
 	
 getDict =: 4 : 0
@@ -131,6 +137,9 @@ getFrSE=: 4 : 0 NB. x is offset, y bytes
 	if. 'PTR_STRUCT' -: (#'PTR_STRUCT'){. class do.
 		class =. 'PTR_STRUCT'
 	end.
+	if. '[' e. class do.
+		class =. (I. -. class e. '[]'){class
+	end.
 	'ix comment' =. ix STRING y
 	'ix chkSum'  =. ix INT_4U y
 	NB. smoutput 'getFrSE';name;class;comment;chkSum
@@ -148,6 +157,7 @@ getFrameH=: 4 : 0 NB. x is offset into y bytes
 	'ix ULeapS' =. ix INT_2U y
 	'ix dt' =. ix REAL_8 y
 	smoutput 'getFRameH';name;run;frame;GTimeS;GTimeN;ULeapS;dt
+	ix
 )
 
 
