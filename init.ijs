@@ -1,5 +1,5 @@
 NB. Jgwf/init.ijs
-NB. Nothing here yet!  Still trying to work my way through the various data structures.
+NB. Able to extract the 32 seconds of data in H-H1_LOSC_4_V2-1126259446-32.gwf
 
 require 'format/printf'
 require 'arc/zlib'
@@ -10,7 +10,6 @@ createR3 =: 4 : 0  NB. (# to drop, # to take) createR3 bytes
 	parti =. a. i. part
 	(<"0 part), (<"0 parti),: <"0 drop + i.take
 )
-NB.  Working with H-H1_LOSC_4_V2-1126259446-32.gwf
 
 CHAR_U =: 4 : '(x+1);a.i. x{y'
 CHAR2 =: 4 : '(x+2);(x,x+1){y'
