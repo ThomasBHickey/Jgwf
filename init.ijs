@@ -74,6 +74,7 @@ getFrame=: 4 : 0 NB. x is offset, y bytes
 	  case. do.
 		if. class e. classes do.
 			smoutput 'found used class';class
+			(class, ix) getFrDict y 
 		else.
 			smoutput 'New class in getFrame:';class
 			ix getFrameH y
@@ -85,6 +86,21 @@ getFrame=: 4 : 0 NB. x is offset, y bytes
   smoutput 'getFrame:';'length:';length;'ix';ix;'class:';class;'inst:';instance
   ix;FrSHname;FrSHclass;FrSHcomment;FrSHchkSum
 )
+
+getFrDict =: 4 : 0
+	'class ix' =. x
+	assert [dict =. >({.I. class = classes){dicts
+	NB.smoutput 'getFrDict dict';dict
+	NB.smoutput 'getFrDict 0{>dict';0{>dict
+	NB.smoutput 'rows:'
+	for_row. dict do.
+	  smoutput 'getFrDict row';row
+	  type =. >1{row
+	  ". '''ix val'' =.ix ',type,' y' 	
+	  smoutput type;val;ix
+	end.	
+)
+	
 getDict =: 4 : 0
   dict =. 0 3 $ 0
   ix =. x
@@ -95,7 +111,7 @@ getDict =: 4 : 0
 	domore =. -. FrSEname-:'chkSum'
 	dict =. dict, FrSEname;FrSEclass;FrSEcomment
   end.
-  smoutput 'got Dict: ix $dict';ix;($ix);#dict
+  NB.smoutput 'got Dict: ix $dict';ix;($ix);#dict
   ix;<dict
 )
 		
