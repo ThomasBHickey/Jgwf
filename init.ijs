@@ -77,14 +77,9 @@ getFrame=: 4 : 0 NB. x is offset, y bytes
 	  case. 2 do.
 		'ix FrSEname FRSEclass FRSEcomment FRSEchkSum' =. ix getFrSE y
 	  case. do.
-		if. class e. classes do.
-			smoutput 'found used class';class
-			'ix res' =. (class, ix) getFrDict y 
-			smoutput 'class';class;'result';res
-		else.
-			smoutput 'New class in getFrame:';class
-			ix =. ix getFrameH y
-		end.
+		assert class e. classes
+		'ix res' =. (class, ix) getFrDict y 
+		smoutput 'class';class;'result';res
 	end.
 	domore =. <:domore
   end.
@@ -111,13 +106,18 @@ getFrDict =: 4 : 0
 		smoutput '2{res:'; 2{res
 		assert 2=>2{res  NB. GZip
 		zleng =. _1 {res
-		smoutput 'decompressing';zleng; 'bytes of data'
 		'ix zdata' =.(ix; zleng) CHARnBytes y
-		uncomp =. zlib_uncompress zdata
-		smoutput 'first real8'; 0 REAL_8 uncomp
-		reals =. _2 fc uncomp
-		smoutput 'length of reals';#reals
-		smoutput 'sample of reals:';(i.10){reals
+		NB. zdata fwrite jpath'~user/projects/Jgwf/samples/jgwf.zdata'
+		if. doDecompress do.
+		  smoutput 'decompressing';zleng; 'bytes of data'
+		  uncomp =. zlib_uncompress zdata
+		  NB. smoutput 'first real8'; 0 REAL_8 uncomp
+		  reals =. _2 fc uncomp
+		  smoutput 'length of reals';#reals
+		  smoutput 'sample of reals:';(i.10){reals
+		else.
+		  smoutput'-----SKIPPING DECOMPRESS (doDecompress=0)----'
+		end.
 	  elseif. type -: 'INT_8UnDim' do.
 		smoutput 'unDim'; _1{res
 		assert 1=>_1{res
@@ -183,22 +183,23 @@ getFrSE=: 4 : 0 NB. x is offset, y bytes
 	ix;name;class;comment;chkSum
 )
 
-getFrameH=: 4 : 0 NB. x is offset into y bytes
-	NB.smoutput (x,40) createR3 y
-	'ix name' =. x STRING y
-	'ix run' =. ix INT_4U y
-	'ix frame' =. ix INT_4U y
-	'ix dataQuality' =. ix INT_4U y
-	'ix GTimeS' =. ix INT_4U y
-	'ix GTimeN' =. ix INT_4U y
-	'ix ULeapS' =. ix INT_2U y
-	'ix dt' =. ix REAL_8 y
-	smoutput 'getFRameH';name;run;frame;GTimeS;GTimeN;ULeapS;dt
-	ix
-)
+NB. getFrameH=: 4 : 0 NB. x is offset into y bytes
+NB. 	NB.smoutput (x,40) createR3 y
+NB. 	'ix name' =. x STRING y
+NB. 	'ix run' =. ix INT_4U y
+NB. 	'ix frame' =. ix INT_4U y
+NB. 	'ix dataQuality' =. ix INT_4U y
+NB. 	'ix GTimeS' =. ix INT_4U y
+NB. 	'ix GTimeN' =. ix INT_4U y
+NB. 	'ix ULeapS' =. ix INT_2U y
+NB. 	'ix dt' =. ix REAL_8 y
+NB. 	smoutput 'getFRameH';name;run;frame;GTimeS;GTimeN;ULeapS;dt
+NB. 	ix
+NB. )
+NB.
 
-
-hgwf =: fread 'c://Users/Thom/gravity/h.gwf'
+hgwf =: fread jpath'~user/projects/Jgwf/samples/H-H1_LOSC_4_V2-1126259446-32.gwf'
+doDecompress =: 1
 runit =: 3 : 0
 	dicts =: 0$0
 	classes =: 0$0
