@@ -109,7 +109,7 @@ getFrDict =: 4 : 0
 		smoutput 'type:'; type
 		smoutput 'res so far:';res;_1{res
 		smoutput '2{res:'; 2{res
-		assert 2=>>2{res  NB. GZip
+		assert 2=>2{res  NB. GZip
 		zleng =. _1 {res
 		smoutput 'decompressing';zleng; 'bytes of data'
 		'ix zdata' =.(ix; zleng) CHARnBytes y
@@ -118,6 +118,19 @@ getFrDict =: 4 : 0
 		reals =. _2 fc uncomp
 		smoutput 'length of reals';#reals
 		smoutput 'sample of reals:';(i.10){reals
+	  elseif. type -: 'INT_8UnDim' do.
+		smoutput 'unDim'; _1{res
+		assert 1=>_1{res
+		'ix val' =. ix INT_8U y
+		smoutput 'INT_8UnDim';val
+	  elseif. type -: 'REAL_8nDim' do.
+		smoutput 'REAL_8NDim'
+		smoutput 'tail of res';_3{.res
+		'ix val' =. ix REAL_8 y
+	  elseif. type -: 'STRINGnDim' do.
+		smoutput 'STRINGnDim'
+		smoutput 'tail of res'; _3{.res
+		'ix val' =. ix STRING y
 	  elseif.do.
 	  	". '''ix val'' =.ix ',type,' y' 	
 	  NB. smoutput 'getFrDict';>0{row;type;val;ix
