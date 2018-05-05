@@ -13,6 +13,10 @@ createR3 =: 4 : 0  NB. (# to drop, # to take) createR3 bytes
 
 CHAR_U =: 4 : '(x+1);a.i. x{y'
 CHAR2 =: 4 : '(x+2);(x,x+1){y'
+CHARn =: 4 : 0
+	'ix leng' =. x
+	(ix+leng);(ix + i.leng) {y
+)
 CHARnBytes =: 4 : 0
 	'ix clen' =. x
 	(ix+clen); clen {. ix}. y
@@ -87,6 +91,12 @@ getFrame=: 4 : 0 NB. x is offset, y bytes
   smoutput 'getFrame:';'length:';length;'ix';ix;'class:';class;'inst:';instance
   ix;FrSHname;FrSHclass;FrSHcomment;FrSHchkSum
 )
+splitBracketed =: 3 : 0
+	assert ']'=_1{y
+	lbrack =: I.'['=y
+	nth =. _1}. (>:lbrack)}. y
+	(lbrack{.y);nth
+)
 
 getFrDict =: 4 : 0
 	'class ix' =. x
@@ -95,7 +105,18 @@ getFrDict =: 4 : 0
 	for_row. dict do.
 	  NB.smoutput 'getFrDict row';row
 	  type =. >1{row
-	  if. 'nAuxParam'-:_9{.type do.
+	  if. ']'=_1{type do.  NB. test incomplete (and should fail)
+		'base nth' =. splitBracketed type
+		smoutput 'looking for nth';nth; 'for';base
+		if. */(nth) e. '0123456789' do.
+		   smoutput 'nthcall'; nth,' n',base
+		   smoutput '''ix val'' =. (ix, {.nth) ', base,'n y'
+		   ".'''ix val'' =. (ix, ',nth,') ', base,'n y'
+		   smoutput 'nth returns';ix;val
+		else.
+			smoutput 'bracketed type'; type; base; nth
+		end.			
+	  elseif. 'nAuxParam'-:_9{.type do.
 		smoutput 'type:';type
 		smoutput 'res so far:'; res; _1{res
 		assert 0=>_1{res
@@ -174,9 +195,9 @@ getFrSE=: 4 : 0 NB. x is offset, y bytes
 	if. 'PTR_STRUCT' -: (#'PTR_STRUCT'){. class do.
 		class =. 'PTR_STRUCT'
 	end.
-	if. '[' e. class do.
-		class =. (I. -. class e. '[]'){class
-	end.
+NB. 	if. '[' e. class do.
+NB. 		class =. (I. -. class e. '[]'){class
+NB. 	end.
 	'ix comment' =. ix STRING y
 	'ix chkSum'  =. ix INT_4U y
 	NB. smoutput 'getFrSE';name;class;comment;chkSum
@@ -199,10 +220,10 @@ NB. )
 NB.
 
 hgwf =: fread jpath'~user/projects/Jgwf/samples/H-H1_LOSC_4_V2-1126259446-32.gwf'
-doDecompress =: 1
+doDecompress =: 0
 runit =: 3 : 0
-	dicts =: 0$0
-	classes =: 0$0
+	dicts =: 0;0
+	classes =: 1 2
 	]fileHeaderLength =. validateFileHeader y
 	fileHeaderLength getFrame y
 )
