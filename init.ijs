@@ -30,6 +30,14 @@ INT_8U =: 4 : '(x+8);{.256#. |. a. i. (x+i.8){y'
 INT_8S =: 4 : '(x+8);_3 ic (x+i.8){y'
 REAL_4  =: 4 : '(x+4);_1 fc (x+i.4){y'
 REAL_8  =: 4 : '(x+8);_2 fc (x+i.8){y'
+REAL_8n =: 4 : 0
+	'ix rlen' =. x
+	if. rlen<100 do.  NB. Use selection
+		(ix+8*rlen);_2 fc ((0{ix) + i.8*rlen){y
+	else.
+		(ix+8*rlen);_2 fc (8*rlen){. ix}. y
+	end.
+)
 STRING =: 4 : 0  NB. 2 byte length + null terminated string (null not returned)
 	'ix slen' =. x INT_2U y
 	(ix+{.slen);(ix+i.<:slen) { y
@@ -115,6 +123,11 @@ getFrDict =: 4 : 0
 		   smoutput 'nth returns';ix;val
 		else.
 			smoutput 'bracketed type'; type; base; nth
+			vnth =. (I.(<nth) = 0{"1 dict){res
+			smoutput 'vnth';vnth; '$vnth'; $vnth
+			smoutput 'trying';'''ix val''=. (ix, >vnth) ', base,'n y'
+			".'''ix val''=. (ix, >vnth) ', base,'n y'
+			smoutput 'vnth returned';val
 		end.			
 	  elseif. 'nAuxParam'-:_9{.type do.
 		smoutput 'type:';type
