@@ -10,19 +10,12 @@ createR3 =: 4 : 0  NB. (# to drop, # to take) createR3 bytes
 	parti =. a. i. part
 	(<"0 part), (<"0 parti),: <"0 drop + i.take
 )
-
 CHAR_U =: 4 : '(x+1);a.i. x{y'
-NB. CHAR2 =: 4 : '(x+2);(x,x+1){y'
 CHARn =: 4 : 0
 	'ix leng' =. x
 NB.	smoutput 'CHARn';ix;leng
 	(ix+leng);(ix + i.leng) {y
 )
-NB. CHARnBytes =: 4 : 0
-NB. 	'ix leng' =. x
-NB. 	ix doNothing leng
-NB. 	(ix+leng); leng {. ix}. y
-NB. )
 INT_2U =: 4 : '(x+2);{.0 ic (x,x+1){y'
 INT_2Un =: 4 : 0
 	'ix leng' =. x
@@ -104,7 +97,6 @@ validateFileHeader =: 3 : 0  NB. pass in file bytes
 	assert 'CRC'-: >(>1{39 CHAR_U y) { 'none';'CRC'  NB. Checksum scheme
 	40 NB. length of file header
 )
-
 getCommon =: 4 : 0  NB. x=offset, y=bytes
 	'ix length' =. x INT_8U y
 	'ix chkType' =. ix CHAR_U y
@@ -112,7 +104,6 @@ getCommon =: 4 : 0  NB. x=offset, y=bytes
 	'ix instance' =. ix INT_4U y
 	 ix;length;chkType;class;instance
 )
-
 getFrame=: 4 : 0 NB. x is offset, y bytes
   domore =. 100
   ix =. x
@@ -172,56 +163,14 @@ getFrDict =: 4 : 0
 			smoutput 'trying';'''ix val''=. (ix;vnth)', base,'n y'
 			".'''ix val''=. (ix;vnth)', base,'n y'
 			smoutput 'vnth returned';val;a. i. 4{. val
-NB. 			if. (_1{ 2{. val) = 1{a. do.
-NB. 			   doStop val
-NB. 		      end.
 		end.			
-NB. 	  elseif. 'nAuxParam'-:_9{.type do.
-NB. 		smoutput 'type:';type
-NB. 		smoutput 'res so far:'; res; _1{res
-NB. 		assert 0=>_1{res
-NB. 		val =. 0
-NB.        elseif. type -: 'CHARnBytes' do.
-NB. 		smoutput 'type:'; type
-NB. 		smoutput 'res so far:';res;_1{res
-NB. 		smoutput '2{res:'; 2{res
-NB. 		assert 2=>2{res  NB. GZip
-NB. 		zleng =. _1 {res
-NB. 		'ix zdata' =.(ix; zleng) CHARnBytes y
-NB. 		NB. zdata fwrite jpath'~user/projects/Jgwf/samples/jgwf.zdata'
-NB. 		if. doDecompress do.
-NB. 		  smoutput 'decompressing';zleng; 'bytes of data'
-NB. 		  uncomp =. zlib_uncompress zdata
-NB. 		  NB. smoutput 'first real8'; 0 REAL_8 uncomp
-NB. 		  reals =. _2 fc uncomp
-NB. 		  smoutput 'length of reals';#reals
-NB. 		  smoutput 'sample of reals:';(i.10){reals
-NB. 		else.
-NB. 		  smoutput'-----SKIPPING DECOMPRESS (doDecompress=0)----'
-NB. 		end.
-NB. 	  elseif. type -: 'INT_8UnDim' do.
-NB. 		smoutput 'unDim'; _1{res
-NB. 		assert 1=>_1{res
-NB. 		'ix val' =. ix INT_8U y
-NB. 		smoutput 'INT_8UnDim';val
-NB. 	  elseif. type -: 'REAL_8nDim' do.
-NB. 		smoutput 'REAL_8NDim'
-NB. 		smoutput 'tail of res';_3{.res
-NB. 		'ix val' =. ix REAL_8 y
-NB. 	  elseif. type -: 'STRINGnDim' do.
-NB. 		smoutput 'STRINGnDim'
-NB. 		smoutput 'tail of res'; _3{.res
-NB. 		'ix val' =. ix STRING y
 	  elseif.do.
 	  	". '''ix val'' =.ix ',type,' y' 	
-	  NB. smoutput 'getFrDict';>0{row;type;val;ix
 	  end.
 	  res =. res,<val
 	end.
-	NB.smoutput 'getFrDict res';res
 	ix;<res
 )
-	
 getDict =: 4 : 0
   dict =. 0 3 $ 0
   ix =. x
@@ -232,10 +181,8 @@ getDict =: 4 : 0
 	domore =. -. FrSEname-:'chkSum'
 	dict =. dict, FrSEname;FrSEclass;FrSEcomment
   end.
-  NB.smoutput 'got Dict: ix $dict';ix;($ix);#dict
   ix;<dict
 )
-		
 getFrSH=: 4 : 0 NB. x is offset, y bytes
 	'ix name' =. x STRING y
 	'ix class' =. ix INT_2U y
@@ -248,36 +195,17 @@ getFrSH=: 4 : 0 NB. x is offset, y bytes
 	classes =: classes,class
 	ix;name;class;comment;chkSum
 )
-
 getFrSE=: 4 : 0 NB. x is offset, y bytes
 	'ix name' =. x STRING y
 	'ix class'=. ix STRING y
 	if. 'PTR_STRUCT' -: (#'PTR_STRUCT'){. class do.
 		class =. 'PTR_STRUCT'
 	end.
-NB. 	if. '[' e. class do.
-NB. 		class =. (I. -. class e. '[]'){class
-NB. 	end.
 	'ix comment' =. ix STRING y
 	'ix chkSum'  =. ix INT_4U y
 	NB. smoutput 'getFrSE';name;class;comment;chkSum
 	ix;name;class;comment;chkSum
 )
-
-NB. getFrameH=: 4 : 0 NB. x is offset into y bytes
-NB. 	NB.smoutput (x,40) createR3 y
-NB. 	'ix name' =. x STRING y
-NB. 	'ix run' =. ix INT_4U y
-NB. 	'ix frame' =. ix INT_4U y
-NB. 	'ix dataQuality' =. ix INT_4U y
-NB. 	'ix GTimeS' =. ix INT_4U y
-NB. 	'ix GTimeN' =. ix INT_4U y
-NB. 	'ix ULeapS' =. ix INT_2U y
-NB. 	'ix dt' =. ix REAL_8 y
-NB. 	smoutput 'getFRameH';name;run;frame;GTimeS;GTimeN;ULeapS;dt
-NB. 	ix
-NB. )
-NB.
 
 hgwf =: fread jpath'~user/projects/Jgwf/samples/H-H1_LOSC_4_V2-1126259446-32.gwf'
 doDecompress =: 0
