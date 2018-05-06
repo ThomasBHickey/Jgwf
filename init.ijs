@@ -12,7 +12,7 @@ createR3 =: 4 : 0  NB. (# to drop, # to take) createR3 bytes
 )
 
 CHAR_U =: 4 : '(x+1);a.i. x{y'
-CHAR2 =: 4 : '(x+2);(x,x+1){y'
+NB. CHAR2 =: 4 : '(x+2);(x,x+1){y'
 CHARn =: 4 : 0
 	'ix leng' =. x
 	smoutput 'CHARn';ix;leng
