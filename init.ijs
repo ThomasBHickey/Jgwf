@@ -15,7 +15,7 @@ CHAR_U =: 4 : '(x+1);a.i. x{y'
 NB. CHAR2 =: 4 : '(x+2);(x,x+1){y'
 CHARn =: 4 : 0
 	'ix leng' =. x
-	smoutput 'CHARn';ix;leng
+NB.	smoutput 'CHARn';ix;leng
 	(ix+leng);(ix + i.leng) {y
 )
 NB. CHARnBytes =: 4 : 0
@@ -91,6 +91,7 @@ COMPLEX_16	=: 4 : 0
 )
 validateFileHeader =: 3 : 0  NB. pass in file bytes
 	assert ('IGWD',{.a.)-:5 {. y
+	assert 
 	assert 8 1-:>1{5 6 CHAR_U y NB. Format version = 8.1?
 	assert 2 4 8 4 8 -: >1{7 8 9 10 11 CHAR_U y  NB. Expected sizes of numeric types
 	assert 16b1234 = >1{12 INT_2U y
@@ -157,6 +158,7 @@ getFrDict =: 4 : 0
 	  if. ']'=_1{type do. NB. type describes an array
 		'base nth' =. splitBrack type
 		smoutput 'looking for nth';nth; 'for';base
+		doStop 'nth'
 		if. */(nth) e. '0123456789' do.
 		   smoutput 'nthcall'; nth,' n',base
 		   smoutput '''ix val'' =. (ix, nth) ', base,'n y'
@@ -164,7 +166,7 @@ getFrDict =: 4 : 0
 		   smoutput 'nth returns';ix;val
 		else.
 			smoutput 'bracketed type'; type; base; nth
-			vnth =. >(I.(<nth) = 0{"1 dict){res
+			vnth =. >{.(I.(<nth) = 0{"1 dict){res
 			smoutput 'vnth';vnth; '$vnth'; $vnth
 			vnth doNothing base
 			smoutput 'trying';'''ix val''=. (ix;vnth)', base,'n y'
