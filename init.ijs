@@ -15,45 +15,80 @@ CHAR_U =: 4 : '(x+1);a.i. x{y'
 CHAR2 =: 4 : '(x+2);(x,x+1){y'
 CHARn =: 4 : 0
 	'ix leng' =. x
+	smoutput 'CHARn';ix;leng
 	(ix+leng);(ix + i.leng) {y
 )
-CHARnBytes =: 4 : 0
-	'ix clen' =. x
-	(ix+clen); clen {. ix}. y
+NB. CHARnBytes =: 4 : 0
+NB. 	'ix leng' =. x
+NB. 	ix doNothing leng
+NB. 	(ix+leng); leng {. ix}. y
+NB. )
+INT_2U =: 4 : '(x+2);{.0 ic (x,x+1){y'
+INT_2Un =: 4 : 0
+	'ix leng' =. x
+	(ix+leng*2); 0 ic (ix+i.leng*2){y
 )
-INT_2U =: 4 : '(x+2);0 ic (x,x+1){y'
-INT_2S =: 4 : '(x+2);_1 ic (x,x+1){y'
+INT_2S =: 4 : '(x+2);{._1 ic (x,x+1){y'
 INT_4U =: 4 : '(x+4);{.256#. |. a. i. (x+i.4){y'
-INT_4S =: 4 : '(x+4);_2 ic (x+i.4){y'
-
+INT_4Un =: 4 : 0
+	'ix leng' =. x
+	res =. 0$0
+	for. i. leng do.
+	  'ix val' =. ix INT_4U y
+	  res =. res,val
+	end.
+	ix;res
+)
+INT_4S =: 4 : '(x+4);{._2 ic (x+i.4){y'
+INT_4Sn =: 4 : 0
+	'ix leng' =. x
+	(ix + leng*4); _2 ic (ix+i.leng*4){y
+)
 INT_8U =: 4 : '(x+8);{.256#. |. a. i. (x+i.8){y'
-INT_8S =: 4 : '(x+8);_3 ic (x+i.8){y'
-REAL_4  =: 4 : '(x+4);_1 fc (x+i.4){y'
-REAL_8  =: 4 : '(x+8);_2 fc (x+i.8){y'
+INT_8Un =: 4 : 0
+	'ix leng' =. x
+	res =. 0$0
+	for. i.leng do.
+	  'ix val' =. ix INT_8U y
+	  res =. res, val
+	end.
+	ix;res
+)
+INT_8S =: 4 : '(x+8);{._3 ic (x+i.8){y'
+REAL_4  =: 4 : '(x+4);{._1 fc (x+i.4){y'
+REAL_8  =: 4 : '(x+8);{._2 fc (x+i.8){y'
 REAL_8n =: 4 : 0
-	'ix rlen' =. x
-	if. rlen<100 do.  NB. Use selection
-		(ix+8*rlen);_2 fc ((0{ix) + i.8*rlen){y
+	'ix leng' =. x
+	if. leng<100 do.  NB. Use selection
+		(ix+8*leng);_2 fc ((0{ix) + i.8*leng){y
 	else.
-		(ix+8*rlen);_2 fc (8*rlen){. ix}. y
+		(ix+8*leng);_2 fc (8*leng){. ix}. y
 	end.
 )
 STRING =: 4 : 0  NB. 2 byte length + null terminated string (null not returned)
-	'ix slen' =. x INT_2U y
-	(ix+{.slen);(ix+i.<:slen) { y
+	'ix leng' =. x INT_2U y
+	(ix+leng); (ix+i.<:leng){y
+)
+STRINGn =: 4 : 0 NB. returns (potentially) multiple strings
+	'ix num' =. x
+	res =. 0$0
+	for. i.num do.
+	  'ix str' =. ix STRING y
+	  res =. res,<str
+	end.
+	ix;<res
 )
 PTR_STRUCT =: 4  : '(x+6);(x+i.6){y'
 COMPLEX_8	=: 4 : 0
-	'xi r' =. x REAL_4 y
-	'xi c' =. xi REAL_4 y
-	xi;+.^:_1) r c
+	'ix r' =. x REAL_4 y
+	'ix c' =. ix REAL_4 y
+	ix;(+.^:_1) r c
 )
 COMPLEX_16	=: 4 : 0
-	'xi r' =. x REAL_8 y
-	'xi c' =. xi REAL_8 y
-	xi;+.^:_1) r c
+	'ix r' =. x REAL_8 y
+	'ix c' =. ix REAL_8 y
+	 ix;(+.^:_1) r c
 )
-
 validateFileHeader =: 3 : 0  NB. pass in file bytes
 	assert ('IGWD',{.a.)-:5 {. y
 	assert 8 1-:>1{5 6 CHAR_U y NB. Format version = 8.1?
@@ -78,7 +113,7 @@ getCommon =: 4 : 0  NB. x=offset, y=bytes
 )
 
 getFrame=: 4 : 0 NB. x is offset, y bytes
-  domore =. 10
+  domore =. 100
   ix =. x
   whilst. domore do.
 	'ix length chkType class instance' =. ix getCommon y
@@ -90,7 +125,7 @@ getFrame=: 4 : 0 NB. x is offset, y bytes
 		'ix FrSEname FRSEclass FRSEcomment FRSEchkSum' =. ix getFrSE y
 	  case. do.
 		assert class e. classes
-		'ix res' =. (class, ix) getFrDict y 
+		'ix res' =. (ix;class) getFrDict y 
 		smoutput 'class';class;'result';res
 	end.
 	domore =. <:domore
@@ -99,72 +134,82 @@ getFrame=: 4 : 0 NB. x is offset, y bytes
   smoutput 'getFrame:';'length:';length;'ix';ix;'class:';class;'inst:';instance
   ix;FrSHname;FrSHclass;FrSHcomment;FrSHchkSum
 )
-splitBracketed =: 3 : 0
-	assert ']'=_1{y
-	lbrack =: I.'['=y
+splitBrack =: 3 : 0
+	lbrack =: {.I.'['=y
 	nth =. _1}. (>:lbrack)}. y
 	(lbrack{.y);nth
 )
-
+doNothing =: 4 : 0
+	smoutput 'doNothing';x;y
+	x;'nothing'
+)
+doStop =: 3 : 0
+	smoutput 'could stop here';y
+)
 getFrDict =: 4 : 0
-	'class ix' =. x
+	smoutput 'getFrDict'
+	'ix class' =. x
 	assert [dict =. >({.I. class = classes){dicts
 	res =. 0$0
 	for_row. dict do.
 	  NB.smoutput 'getFrDict row';row
 	  type =. >1{row
-	  if. ']'=_1{type do.  NB. test incomplete (and should fail)
-		'base nth' =. splitBracketed type
+	  if. ']'=_1{type do. NB. type describes an array
+		'base nth' =. splitBrack type
 		smoutput 'looking for nth';nth; 'for';base
 		if. */(nth) e. '0123456789' do.
 		   smoutput 'nthcall'; nth,' n',base
-		   smoutput '''ix val'' =. (ix, {.nth) ', base,'n y'
+		   smoutput '''ix val'' =. (ix, nth) ', base,'n y'
 		   ".'''ix val'' =. (ix, ',nth,') ', base,'n y'
 		   smoutput 'nth returns';ix;val
 		else.
 			smoutput 'bracketed type'; type; base; nth
-			vnth =. (I.(<nth) = 0{"1 dict){res
+			vnth =. >(I.(<nth) = 0{"1 dict){res
 			smoutput 'vnth';vnth; '$vnth'; $vnth
-			smoutput 'trying';'''ix val''=. (ix, >vnth) ', base,'n y'
-			".'''ix val''=. (ix, >vnth) ', base,'n y'
-			smoutput 'vnth returned';val
+			vnth doNothing base
+			smoutput 'trying';'''ix val''=. (ix;vnth)', base,'n y'
+			".'''ix val''=. (ix;vnth)', base,'n y'
+			smoutput 'vnth returned';val;a. i. 4{. val
+NB. 			if. (_1{ 2{. val) = 1{a. do.
+NB. 			   doStop val
+NB. 		      end.
 		end.			
-	  elseif. 'nAuxParam'-:_9{.type do.
-		smoutput 'type:';type
-		smoutput 'res so far:'; res; _1{res
-		assert 0=>_1{res
-		val =. 0
-       elseif. type -: 'CHARnBytes' do.
-		smoutput 'type:'; type
-		smoutput 'res so far:';res;_1{res
-		smoutput '2{res:'; 2{res
-		assert 2=>2{res  NB. GZip
-		zleng =. _1 {res
-		'ix zdata' =.(ix; zleng) CHARnBytes y
-		NB. zdata fwrite jpath'~user/projects/Jgwf/samples/jgwf.zdata'
-		if. doDecompress do.
-		  smoutput 'decompressing';zleng; 'bytes of data'
-		  uncomp =. zlib_uncompress zdata
-		  NB. smoutput 'first real8'; 0 REAL_8 uncomp
-		  reals =. _2 fc uncomp
-		  smoutput 'length of reals';#reals
-		  smoutput 'sample of reals:';(i.10){reals
-		else.
-		  smoutput'-----SKIPPING DECOMPRESS (doDecompress=0)----'
-		end.
-	  elseif. type -: 'INT_8UnDim' do.
-		smoutput 'unDim'; _1{res
-		assert 1=>_1{res
-		'ix val' =. ix INT_8U y
-		smoutput 'INT_8UnDim';val
-	  elseif. type -: 'REAL_8nDim' do.
-		smoutput 'REAL_8NDim'
-		smoutput 'tail of res';_3{.res
-		'ix val' =. ix REAL_8 y
-	  elseif. type -: 'STRINGnDim' do.
-		smoutput 'STRINGnDim'
-		smoutput 'tail of res'; _3{.res
-		'ix val' =. ix STRING y
+NB. 	  elseif. 'nAuxParam'-:_9{.type do.
+NB. 		smoutput 'type:';type
+NB. 		smoutput 'res so far:'; res; _1{res
+NB. 		assert 0=>_1{res
+NB. 		val =. 0
+NB.        elseif. type -: 'CHARnBytes' do.
+NB. 		smoutput 'type:'; type
+NB. 		smoutput 'res so far:';res;_1{res
+NB. 		smoutput '2{res:'; 2{res
+NB. 		assert 2=>2{res  NB. GZip
+NB. 		zleng =. _1 {res
+NB. 		'ix zdata' =.(ix; zleng) CHARnBytes y
+NB. 		NB. zdata fwrite jpath'~user/projects/Jgwf/samples/jgwf.zdata'
+NB. 		if. doDecompress do.
+NB. 		  smoutput 'decompressing';zleng; 'bytes of data'
+NB. 		  uncomp =. zlib_uncompress zdata
+NB. 		  NB. smoutput 'first real8'; 0 REAL_8 uncomp
+NB. 		  reals =. _2 fc uncomp
+NB. 		  smoutput 'length of reals';#reals
+NB. 		  smoutput 'sample of reals:';(i.10){reals
+NB. 		else.
+NB. 		  smoutput'-----SKIPPING DECOMPRESS (doDecompress=0)----'
+NB. 		end.
+NB. 	  elseif. type -: 'INT_8UnDim' do.
+NB. 		smoutput 'unDim'; _1{res
+NB. 		assert 1=>_1{res
+NB. 		'ix val' =. ix INT_8U y
+NB. 		smoutput 'INT_8UnDim';val
+NB. 	  elseif. type -: 'REAL_8nDim' do.
+NB. 		smoutput 'REAL_8NDim'
+NB. 		smoutput 'tail of res';_3{.res
+NB. 		'ix val' =. ix REAL_8 y
+NB. 	  elseif. type -: 'STRINGnDim' do.
+NB. 		smoutput 'STRINGnDim'
+NB. 		smoutput 'tail of res'; _3{.res
+NB. 		'ix val' =. ix STRING y
 	  elseif.do.
 	  	". '''ix val'' =.ix ',type,' y' 	
 	  NB. smoutput 'getFrDict';>0{row;type;val;ix
@@ -180,7 +225,7 @@ getDict =: 4 : 0
   ix =. x
   whilst. domore do.
 	'ix length chkType class instance' =. ix getCommon y
-	assert class=2
+	NB.assert class=2
 	'ix FrSEname FrSEclass FrSEcomment FrSEchkSum' =. ix getFrSE y
 	domore =. -. FrSEname-:'chkSum'
 	dict =. dict, FrSEname;FrSEclass;FrSEcomment
@@ -238,6 +283,6 @@ runit =: 3 : 0
 	dicts =: 0;0
 	classes =: 1 2
 	]fileHeaderLength =. validateFileHeader y
-	fileHeaderLength getFrame y
+	smoutput 'getFrame result'; fileHeaderLength getFrame y
 )
 runit hgwf
