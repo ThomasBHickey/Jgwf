@@ -3,6 +3,7 @@ NB. Able to extract the 32 seconds of data in H-H1_LOSC_4_V2-1126259446-32.gwf
 
 require 'format/printf'
 require 'arc/zlib'
+CRC =: 128!:3
 NB. routine to display sections of bytes along with numeric and position info
 createR3 =: 4 : 0  NB. (# to drop, # to take) createR3 bytes
 	'drop take' =. x
@@ -108,20 +109,24 @@ getCommon =: 4 : 0  NB. x=offset, y=bytes
 	 ix;length;chkType;class;instance
 )
 getFrame=: 4 : 0 NB. x is offset, y bytes
-  domore =. 100
+  domore =. 1
   ix =. x
   whilst. domore do.
+	startix =. ix
 	'ix length chkType class instance' =. ix getCommon y
+	data =. length{.startix}. y
 	select. class
 	  case. 1 do.
 		'ix FrSHname FrSHclass FrSHcomment FrSHchkSum' =. ix getFrSH y
+		classNames =: classNames,<FrSHname
 	  case. 2 do.
-		'ix FrSEname FRSEclass FRSEcomment FRSEchkSum' =. ix getFrSE y
+		'ix FrSEname FrSEclass FrSEcomment FrSEchkSum' =. ix getFrSE y
+		smoutput 'FrSEname';FrSEname;'FrSEclass:';FrSEclass
+		domore =. -. FrSEname-:'chkSumFile'
 	  case. do.
 		assert class e. classes
 		'ix res' =. (ix;class) getFrDict y 
 	end.
-	smoutput 'getFrame looping after';class
   end.
   smoutput 'end of getFrame:';'length:';length;'ix';ix;'class:';class;'inst:';instance
   ix;FrSHname;FrSHclass;FrSHcomment;FrSHchkSum
@@ -162,6 +167,14 @@ getFrDict =: 4 : 0
 			  totalDim =. totalDim *vnth
 			  assert totalDim < (#y)-ix
 			end.
+		end.
+		if. (totalDim>1000) do.
+			smoutput 'found large';totalDim;base
+			smoutput 'class';class; (I. class=classes){classNames
+			smoutput 'compression:'; ]compress=.>{.(I.(<'compress')=0{"1 dict){res
+			if. compress=256 do.
+				if. doCompress do.
+					vectorData =: 
 		end.
    		".'''ix val'' =. (ix, totalDim)' , base,'n y'
 	  else.
@@ -207,10 +220,11 @@ getFrSE=: 4 : 0 NB. x is offset, y bytes
 )
 
 hgwf =: fread jpath'~user/projects/Jgwf/samples/H-H1_LOSC_4_V2-1126259446-32.gwf'
-doDecompress =: 0
+doDecompress =: 1
 runit =: 3 : 0
 	dicts =: 0;0
 	classes =: 1 2
+	classNames =: 'FrSH';'FrSE'
 	]fileHeaderLength =. validateFileHeader y
 	smoutput 'getFrame result'; fileHeaderLength getFrame y
 )
