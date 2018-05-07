@@ -13,7 +13,6 @@ createR3 =: 4 : 0  NB. (# to drop, # to take) createR3 bytes
 CHAR_U =: 4 : '(x+1);a.i. x{y'
 CHARn =: 4 : 0
 	'ix leng' =. x
-NB.	smoutput 'CHARn';ix;leng
 	(ix+leng);(ix + i.leng) {y
 )
 INT_2U =: 4 : '(x+2);{.0 ic (x,x+1){y'
@@ -113,7 +112,6 @@ getFrame=: 4 : 0 NB. x is offset, y bytes
   ix =. x
   whilst. domore do.
 	'ix length chkType class instance' =. ix getCommon y
-	smoutput 'getFrame domore loop ix:';ix;'length:';length;'class:';class
 	select. class
 	  case. 1 do.
 		'ix FrSHname FrSHclass FrSHcomment FrSHchkSum' =. ix getFrSH y
@@ -122,12 +120,10 @@ getFrame=: 4 : 0 NB. x is offset, y bytes
 	  case. do.
 		assert class e. classes
 		'ix res' =. (ix;class) getFrDict y 
-		smoutput 'class';class;'result';res
 	end.
-	domore =. <:domore
+	smoutput 'getFrame looping after';class
   end.
-  smoutput 'ending getFrame'
-  smoutput 'getFrame:';'length:';length;'ix';ix;'class:';class;'inst:';instance
+  smoutput 'end of getFrame:';'length:';length;'ix';ix;'class:';class;'inst:';instance
   ix;FrSHname;FrSHclass;FrSHcomment;FrSHchkSum
 )
 splitBracks =: 3 : 0
@@ -141,56 +137,29 @@ splitBracks =: 3 : 0
 	end.
 	base;dims
 )
-NB. 	assert lbrack
-NB. 	dim =. _1}. (>:{.lbrack){.y
-NB. 	select. $lbrack
-NB. 	  case. 1 do. nth=. dim
-NB. 	  case. 2 do.
-NB. 		lb2 =. {.I.'['=dim
-NB. 		n1 =. lb2{. dim
-NB. 		n2 =. lb2}. dim
-NB. 	      nth =. n1,n2
-NB. 	  case. do. 'Unexpected dimensions' assert 0
-NB. 	end.
-NB. 	nth =. _1}. (>:lbrack)}. y
-NB. 	(lbrack{.y);<nth
-
-doNothing =: 4 : 0
-	smoutput 'doNothing';x;y
-	x;'nothing'
-)
 doStop =: 3 : 0
 	smoutput 'could stop here';y
 )
 getFrDict =: 4 : 0
-	smoutput 'getFrDict'
 	'ix class' =. x
 	assert [dict =. >({.I. class = classes){dicts
 	res =. 0$0
 	for_row. dict do.
-	  NB.smoutput 'getFrDict row';row
 	  type =. >1{row
 	  if. ']'=_1{type do. NB. type describes an array
 		baseParams =. splitBracks type
 		base =. >{.baseParams
 		totalDim =. 1
 		for_param. }.baseParams do.
-			smoutput 'looking for param';(>param);'for';base
 			if. */(>param) e. '0123456789' do.
-				smoutput 'found dim param as digits';>param
 				totalDim =. totalDim * ".>param
-				smoutput 'totalDim 1';totalDim
 			else.
-			  if. param_index>0 do. doStop }.baseParams end.
-			  smoutput 'need to look up';>param
+			  NB.if. param_index>0 do. doStop }.baseParams end.
 			  vnth =. >{.(I.param = 0{"1 dict){res
 			  if. vnth = <:2^32x do.
-				smoutput 'replacing <:2^32x with 0'
 				vnth =. 0
 			  end.
-			  smoutput 'vnth';vnth; '$vnth'; $vnth
 			  totalDim =. totalDim *vnth
-			  smoutput 'totalDim 2';totalDim
 			  assert totalDim < (#y)-ix
 			end.
 		end.
@@ -207,7 +176,6 @@ getDict =: 4 : 0
   ix =. x
   whilst. domore do.
 	'ix length chkType class instance' =. ix getCommon y
-	NB.assert class=2
 	'ix FrSEname FrSEclass FrSEcomment FrSEchkSum' =. ix getFrSE y
 	domore =. -. FrSEname-:'chkSum'
 	dict =. dict, FrSEname;FrSEclass;FrSEcomment
