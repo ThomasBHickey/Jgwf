@@ -49,6 +49,10 @@ INT_8Un =: 4 : 0
 )
 INT_8S =: 4 : '(x+8);{._3 ic (x+i.8){y'
 REAL_4  =: 4 : '(x+4);{._1 fc (x+i.4){y'
+REAL_4n =: 4 : 0
+	'ix leng' =. x
+	(ix+4*leng);_1 fc (4*leng){. ix}. y
+)
 REAL_8  =: 4 : '(x+8);{._2 fc (x+i.8){y'
 REAL_8n =: 4 : 0
 	'ix leng' =. x
@@ -126,11 +130,31 @@ getFrame=: 4 : 0 NB. x is offset, y bytes
   smoutput 'getFrame:';'length:';length;'ix';ix;'class:';class;'inst:';instance
   ix;FrSHname;FrSHclass;FrSHcomment;FrSHchkSum
 )
-splitBrack =: 3 : 0
-	lbrack =: {.I.'['=y
-	nth =. _1}. (>:lbrack)}. y
-	(lbrack{.y);nth
+splitBracks =: 3 : 0
+	dims =. 0$0
+	lbrack =. I.'['=y
+	base =. _1}.(>:{.lbrack){.y
+	for_brack. lbrack do.
+		nth =. (>:brack)}. y
+		rbrack =. {.I.']'=nth
+		dims =. dims, <rbrack{.nth
+	end.
+	base;dims
 )
+NB. 	assert lbrack
+NB. 	dim =. _1}. (>:{.lbrack){.y
+NB. 	select. $lbrack
+NB. 	  case. 1 do. nth=. dim
+NB. 	  case. 2 do.
+NB. 		lb2 =. {.I.'['=dim
+NB. 		n1 =. lb2{. dim
+NB. 		n2 =. lb2}. dim
+NB. 	      nth =. n1,n2
+NB. 	  case. do. 'Unexpected dimensions' assert 0
+NB. 	end.
+NB. 	nth =. _1}. (>:lbrack)}. y
+NB. 	(lbrack{.y);<nth
+
 doNothing =: 4 : 0
 	smoutput 'doNothing';x;y
 	x;'nothing'
@@ -147,24 +171,31 @@ getFrDict =: 4 : 0
 	  NB.smoutput 'getFrDict row';row
 	  type =. >1{row
 	  if. ']'=_1{type do. NB. type describes an array
-		'base nth' =. splitBrack type
-		smoutput 'looking for nth';nth; 'for';base
-		doStop 'nth'
-		if. */(nth) e. '0123456789' do.
-		   smoutput 'nthcall'; nth,' n',base
-		   smoutput '''ix val'' =. (ix, nth) ', base,'n y'
-		   ".'''ix val'' =. (ix, ',nth,') ', base,'n y'
-		   smoutput 'nth returns';ix;val
-		else.
-			smoutput 'bracketed type'; type; base; nth
-			vnth =. >{.(I.(<nth) = 0{"1 dict){res
-			smoutput 'vnth';vnth; '$vnth'; $vnth
-			vnth doNothing base
-			smoutput 'trying';'''ix val''=. (ix;vnth)', base,'n y'
-			".'''ix val''=. (ix;vnth)', base,'n y'
-			smoutput 'vnth returned';val;a. i. 4{. val
-		end.			
-	  elseif.do.
+		baseParams =. splitBracks type
+		base =. >{.baseParams
+		totalDim =. 1
+		for_param. }.baseParams do.
+			smoutput 'looking for param';(>param);'for';base
+			if. */(>param) e. '0123456789' do.
+				smoutput 'found dim param as digits';>param
+				totalDim =. totalDim * ".>param
+				smoutput 'totalDim 1';totalDim
+			else.
+			  if. param_index>0 do. doStop }.baseParams end.
+			  smoutput 'need to look up';>param
+			  vnth =. >{.(I.param = 0{"1 dict){res
+			  if. vnth = <:2^32x do.
+				smoutput 'replacing <:2^32x with 0'
+				vnth =. 0
+			  end.
+			  smoutput 'vnth';vnth; '$vnth'; $vnth
+			  totalDim =. totalDim *vnth
+			  smoutput 'totalDim 2';totalDim
+			  assert totalDim < (#y)-ix
+			end.
+		end.
+   		".'''ix val'' =. (ix, totalDim)' , base,'n y'
+	  else.
 	  	". '''ix val'' =.ix ',type,' y' 	
 	  end.
 	  res =. res,<val
