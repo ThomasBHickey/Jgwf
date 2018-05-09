@@ -12,10 +12,7 @@ createR3 =: 4 : 0  NB. (# to drop, # to take) createR3 bytes
 	(<"0 part), (<"0 parti),: <"0 drop + i.take
 )
 CHAR_U =: 4 : '(x+1);a.i. x{y'
-CHARn =: 4 : 0
-	'ix leng' =. x
-	(ix+leng);(ix + i.leng) {y
-)
+CHARn =: 4 : '(+/x);(({.x)+i.}.x){y'  NB. (ix, leng) CHARn data
 INT_2U =: 4 : '(x+2);{.0 ic (x,x+1){y'
 INT_2Un =: 4 : 0
 	'ix leng' =. x
@@ -56,11 +53,7 @@ REAL_4n =: 4 : 0
 REAL_8  =: 4 : '(x+8);{._2 fc (x+i.8){y'
 REAL_8n =: 4 : 0
 	'ix leng' =. x
-	if. leng<100 do.  NB. Use selection
-		(ix+8*leng);_2 fc ((0{ix) + i.8*leng){y
-	else.
-		(ix+8*leng);_2 fc (8*leng){. ix}. y
-	end.
+	(ix+8*leng);_2 fc (8*leng){. ix}. y
 )
 STRING =: 4 : 0  NB. 2 byte length + null terminated string (null not returned)
 	'ix leng' =. x INT_2U y
@@ -147,6 +140,7 @@ doStop =: 3 : 0
 )
 getFrDict =: 4 : 0
 	'ix class' =. x
+	smoutput 'getFrDict';>({.I. class = classes){classNames
 	assert [dict =. >({.I. class = classes){dicts
 	res =. 0$0
 	for_row. dict do.
@@ -168,15 +162,18 @@ getFrDict =: 4 : 0
 			  assert totalDim < (#y)-ix
 			end.
 		end.
+   		".'''ix val'' =. (ix, totalDim)' , base,'n y'
 		if. (totalDim>1000) do.
 			smoutput 'found large';totalDim;base
 			smoutput 'class';class; (I. class=classes){classNames
 			smoutput 'compression:'; ]compress=.>{.(I.(<'compress')=0{"1 dict){res
-			if. compress=256 do.
-				if. doCompress do.
-					vectorData =: 
+			vtype =. >{.(I.(<'type')=0{"1 dict){res
+			if. *./doDecompress, (compress=257), (vtype=2) do.  NB. vtype=2 =>REAL8
+			  charData =. zlib_uncompress val
+			  'ignorex val' =. (0, (#charData)%8) REAL_8n charData
+			  r8=: val		
+			end.
 		end.
-   		".'''ix val'' =. (ix, totalDim)' , base,'n y'
 	  else.
 	  	". '''ix val'' =.ix ',type,' y' 	
 	  end.
@@ -220,7 +217,7 @@ getFrSE=: 4 : 0 NB. x is offset, y bytes
 )
 
 hgwf =: fread jpath'~user/projects/Jgwf/samples/H-H1_LOSC_4_V2-1126259446-32.gwf'
-doDecompress =: 1
+doDecompress =: 0
 runit =: 3 : 0
 	dicts =: 0;0
 	classes =: 1 2
@@ -229,3 +226,4 @@ runit =: 3 : 0
 	smoutput 'getFrame result'; fileHeaderLength getFrame y
 )
 runit hgwf
+NB.   plot 90 {.(#r8)%2}. r8
