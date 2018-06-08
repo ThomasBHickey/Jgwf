@@ -103,6 +103,7 @@ getCommon =: 4 : 0  NB. x=offset, y=bytes
 )
 getFrame=: 4 : 0 NB. x is offset, y bytes
   domore =. 1
+  results =. 0$0
   ix =. x
   whilst. domore do.
 	startix =. ix
@@ -114,15 +115,19 @@ getFrame=: 4 : 0 NB. x is offset, y bytes
 		classNames =: classNames,<FrSHname
 	  case. 2 do.
 		'ix FrSEname FrSEclass FrSEcomment FrSEchkSum' =. ix getFrSE y
-		smoutput 'FrSEname';FrSEname;'FrSEclass:';FrSEclass
+NB. 		smoutput 'FrSEname';FrSEname;'FrSEclass:';FrSEclass
 		domore =. -. FrSEname-:'chkSumFile'
 	  case. do.
 		assert class e. classes
-		'ix res' =. (ix;class) getFrDict y 
+		className =. >({.I. class = classes){classNames
+		'ix res' =. (ix;class) getFrDict y
+		smoutput 'just got class';(<className),(<instance),res
+		results =. results,<(<className),(<instance),res
+NB. 	      smoutput 'length of results';#results
 	end.
   end.
   smoutput 'end of getFrame:';'length:';length;'ix';ix;'class:';class;'inst:';instance
-  ix;FrSHname;FrSHclass;FrSHcomment;FrSHchkSum
+  ix;<results
 )
 splitBracks =: 3 : 0
 	dims =. 0$0
@@ -140,9 +145,10 @@ doStop =: 3 : 0
 )
 getFrDict =: 4 : 0
 	'ix class' =. x
-	smoutput 'getFrDict';>({.I. class = classes){classNames
+	className =. >({.I. class = classes){classNames
+NB. 	smoutput 'getFrDict';className
 	assert [dict =. >({.I. class = classes){dicts
-	res =. 0$0
+	res =. 0$<className
 	for_row. dict do.
 	  type =. >1{row
 	  if. ']'=_1{type do. NB. type describes an array
@@ -197,9 +203,8 @@ getFrSH=: 4 : 0 NB. x is offset, y bytes
 	'ix class' =. ix INT_2U y
 	'ix comment' =. ix STRING y
 	'ix chkSum' =. ix INT_4U y	
-	smoutput 'getFrSH';name;class;comment;x
+NB. 	smoutput 'getFrSH';name;class;comment;x
 	'ix bdict' =. ix getDict y  NB. boxed dict
-	NB.smoutput 'ix after getDict:';ix
 	dicts =: dicts,<bdict  NB. rebox it
 	classes =: classes,class
 	ix;name;class;comment;chkSum
@@ -212,18 +217,25 @@ getFrSE=: 4 : 0 NB. x is offset, y bytes
 	end.
 	'ix comment' =. ix STRING y
 	'ix chkSum'  =. ix INT_4U y
-	NB. smoutput 'getFrSE';name;class;comment;chkSum
 	ix;name;class;comment;chkSum
 )
 
-hgwf =: fread jpath'~user/projects/Jgwf/samples/H-H1_LOSC_4_V2-1126259446-32.gwf'
-doDecompress =: 0
+NB.hgwf =: fread jpath'~user/projects/Jgwf/samples/H-H1_LOSC_4_V2-1126259446-32.gwf'
 runit =: 3 : 0
+	doDecompress =: 1
 	dicts =: 0;0
 	classes =: 1 2
 	classNames =: 'FrSH';'FrSE'
 	]fileHeaderLength =. validateFileHeader y
-	smoutput 'getFrame result'; fileHeaderLength getFrame y
+	'ix frames' =: fileHeaderLength getFrame y
+	smoutput 'getFrame result';frames
 )
-runit hgwf
+test=: 3 : 0
+	hgwf =. fread jpath'~user/projects/Jgwf/samples/H-H1_LOSC_4_V2-1126259446-32.gwf'
+	NB.hgwf =. fread jpath'~user/projects/Jgwf/samples/H-H1_LOSC_CLN_4_V1-1187007040-2048.gwf'
+	smoutput 'length of hwwf:';#hgwf
+	runit hgwf
+)
 NB.   plot 90 {.(#r8)%2}. r8
+NB.r8mid2sec =. (+:4096){.(((#r8)%2)-4096)}.r8
+NB.r8mid1sec =. 4096{.(((#r8)%2)-4096%2)}.r8
