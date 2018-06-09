@@ -221,20 +221,37 @@ getFrSE=: 4 : 0 NB. x is offset, y bytes
 )
 
 NB.hgwf =: fread jpath'~user/projects/Jgwf/samples/H-H1_LOSC_4_V2-1126259446-32.gwf'
-runit =: 3 : 0
+parseGWF =: 3 : 0  NB. pass in gwf data
 	doDecompress =: 1
 	dicts =: 0;0
 	classes =: 1 2
 	classNames =: 'FrSH';'FrSE'
 	]fileHeaderLength =. validateFileHeader y
 	'ix frames' =: fileHeaderLength getFrame y
-	smoutput 'getFrame result';frames
+	frames
 )
+
+findVect =: 4 : 0  NB. name findVect frames
+   for_frame. frames do.
+	if. 'FrVect' -: >0{>frame do.
+	   opFrame =. >frame
+NB. 	   smoutput 'vector';>2{opFrame
+	   if. x-:>2{opFrame do.
+NB. 		smoutput 'found Vector';x
+NB. 		size =. 5{opFrame
+		>7{opFrame
+		return.
+	   end.
+	end.
+   end.
+)
+
 test=: 3 : 0
 	hgwf =. fread jpath'~user/projects/Jgwf/samples/H-H1_LOSC_4_V2-1126259446-32.gwf'
 	NB.hgwf =. fread jpath'~user/projects/Jgwf/samples/H-H1_LOSC_CLN_4_V1-1187007040-2048.gwf'
 	smoutput 'length of hwwf:';#hgwf
-	runit hgwf
+	frames =. parseGWF hgwf
+	smoutput 'test found';(#frames);'frames'
 )
 NB.   plot 90 {.(#r8)%2}. r8
 NB.r8mid2sec =. (+:4096){.(((#r8)%2)-4096)}.r8
