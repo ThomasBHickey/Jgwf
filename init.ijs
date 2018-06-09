@@ -3,6 +3,7 @@ NB. Able to extract the 32 seconds of data in H-H1_LOSC_4_V2-1126259446-32.gwf
 
 require 'format/printf'
 require 'arc/zlib'
+verbose =: 0
 CRC =: 128!:3
 NB. routine to display sections of bytes along with numeric and position info
 createR3 =: 4 : 0  NB. (# to drop, # to take) createR3 bytes
@@ -121,12 +122,12 @@ NB. 		smoutput 'FrSEname';FrSEname;'FrSEclass:';FrSEclass
 		assert class e. classes
 		className =. >({.I. class = classes){classNames
 		'ix res' =. (ix;class) getFrDict y
-		smoutput 'just got class';(<className),(<instance),res
+		if. verbose do.smoutput 'just got class';(<className),(<instance),res end.
 		results =. results,<(<className),(<instance),res
 NB. 	      smoutput 'length of results';#results
 	end.
   end.
-  smoutput 'end of getFrame:';'length:';length;'ix';ix;'class:';class;'inst:';instance
+  if. verbose do.smoutput 'end of getFrame:';'length:';length;'ix';ix;'class:';class;'inst:';instance end.
   ix;<results
 )
 splitBracks =: 3 : 0
@@ -159,7 +160,6 @@ NB. 	smoutput 'getFrDict';className
 			if. */(>param) e. '0123456789' do.
 				totalDim =. totalDim * ".>param
 			else.
-			  NB.if. param_index>0 do. doStop }.baseParams end.
 			  vnth =. >{.(I.param = 0{"1 dict){res
 			  if. vnth = <:2^32x do.
 				vnth =. 0
@@ -177,7 +177,7 @@ NB. 	smoutput 'getFrDict';className
 			if. *./doDecompress, (compress=257), (vtype=2) do.  NB. vtype=2 =>REAL8
 			  charData =. zlib_uncompress val
 			  'ignorex val' =. (0, (#charData)%8) REAL_8n charData
-			  r8=: val		
+			  r8=: val		NB. kludge that can be deleted
 			end.
 		end.
 	  else.
@@ -203,7 +203,6 @@ getFrSH=: 4 : 0 NB. x is offset, y bytes
 	'ix class' =. ix INT_2U y
 	'ix comment' =. ix STRING y
 	'ix chkSum' =. ix INT_4U y	
-NB. 	smoutput 'getFrSH';name;class;comment;x
 	'ix bdict' =. ix getDict y  NB. boxed dict
 	dicts =: dicts,<bdict  NB. rebox it
 	classes =: classes,class
@@ -220,7 +219,6 @@ getFrSE=: 4 : 0 NB. x is offset, y bytes
 	ix;name;class;comment;chkSum
 )
 
-NB.hgwf =: fread jpath'~user/projects/Jgwf/samples/H-H1_LOSC_4_V2-1126259446-32.gwf'
 parseGWF =: 3 : 0  NB. pass in gwf data
 	doDecompress =: 1
 	dicts =: 0;0
