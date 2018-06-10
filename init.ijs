@@ -170,9 +170,9 @@ NB. 	smoutput 'getFrDict';className
 		end.
    		".'''ix val'' =. (ix, totalDim)' , base,'n y'
 		if. (totalDim>1000) do.
-			smoutput 'found large';totalDim;base
-			smoutput 'class';class; (I. class=classes){classNames
-			smoutput 'compression:'; ]compress=.>{.(I.(<'compress')=0{"1 dict){res
+NB. 			smoutput 'found large';totalDim;base
+NB. 			smoutput 'class';class; (I. class=classes){classNames
+ 			compress=.>{.(I.(<'compress')=0{"1 dict){res
 			vtype =. >{.(I.(<'type')=0{"1 dict){res
 			if. *./doDecompress, (compress=257), (vtype=2) do.  NB. vtype=2 =>REAL8
 			  charData =. zlib_uncompress val
@@ -196,6 +196,7 @@ getDict =: 4 : 0
 	domore =. -. FrSEname-:'chkSum'
 	dict =. dict, FrSEname;FrSEclass;FrSEcomment
   end.
+NB.   smoutput dict
   ix;<dict
 )
 getFrSH=: 4 : 0 NB. x is offset, y bytes
@@ -226,22 +227,18 @@ parseGWF =: 3 : 0  NB. pass in gwf data
 	classNames =: 'FrSH';'FrSE'
 	]fileHeaderLength =. validateFileHeader y
 	'ix frames' =: fileHeaderLength getFrame y
-	frames
+	>frames
 )
 
 findVect =: 4 : 0  NB. name findVect frames
-   for_frame. frames do.
-	if. 'FrVect' -: >0{>frame do.
-	   opFrame =. >frame
-NB. 	   smoutput 'vector';>2{opFrame
-	   if. x-:>2{opFrame do.
-NB. 		smoutput 'found Vector';x
-NB. 		size =. 5{opFrame
-		>7{opFrame
-		return.
-	   end.
-	end.
-   end.
+  FrVects =. (I. ((<'FrVect') = 0{"1 y)) { y
+  >7{0{(I.(<x) = 2{"1 FrVects) { FrVects
+)
+
+t1 =: 3 : 0
+	NB. h1strain =. 'H1:LOSC-STRAIN' findVect y
+	frames =. y
+	0{"1 frames
 )
 
 test=: 3 : 0
